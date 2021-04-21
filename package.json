@@ -1,15 +1,16 @@
-﻿{
+{
   "name": "br.com.twinbolts.audiorecorder",
-  "version": "0.0.2",
   "displayName": "TB Audio Recorder",
-  "description": "This package contains tools to help recording audio in Unity",
+  "version": "0.0.3",
   "unity": "2020.3",
+  "description": "This package contains tools to help recording audio in Unity",
   "keywords": [
     "audio",
     "recorder",
     "tool"
   ],
-  "dependencies" : { },
+  "dependencies": {
+  },
   "author": {
     "name": "Ribeiro",
     "url": "https://github.com/voidribeiro"
