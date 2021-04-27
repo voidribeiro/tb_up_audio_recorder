@@ -6,6 +6,8 @@ public class TBRecorder : MonoBehaviour
     private AudioSource currentAudioSource;
     private const int RecordingDuration = 10;
     private const int DefaultFrequency = 44100;
+    [SerializeField] 
+    private bool enableDebug = false;
 
     public void Start()
     {
@@ -13,7 +15,7 @@ public class TBRecorder : MonoBehaviour
         currentAudioSource = GetComponent<AudioSource>();
     }
 
-    private void StartRecording()
+    public void StartRecording()
     {
         Debug.Log("Start Recording");
         for (int i = 0; i < Microphone.devices.Length; i++)
@@ -28,14 +30,14 @@ public class TBRecorder : MonoBehaviour
         currentAudioSource.Play();
     }
 
-    private void StopRecording()
+    public void StopRecording()
     {
         if(!Microphone.IsRecording(null)) return;
         Debug.Log("Stop Recording");
         Microphone.End(null);
     }
 
-    private void StartPlaying()
+    public void StartPlaying()
     {
         Debug.Log("Start Playing");
         currentAudioSource.Play();
@@ -43,6 +45,7 @@ public class TBRecorder : MonoBehaviour
     
     void OnGUI()   
     {
+        if(!enableDebug) return;
         if (Microphone.IsRecording(null))
         {
             if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 25, 200, 50), "Stop and Play!"))
