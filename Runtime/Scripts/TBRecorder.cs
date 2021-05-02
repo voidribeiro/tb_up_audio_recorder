@@ -1,11 +1,16 @@
-﻿using UnityEngine;
+﻿using System;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
 
 public class TBRecorder : MonoBehaviour
 {
     [SerializeField]
     private AudioSource currentAudioSource;
-    private const int RecordingDuration = 10;
-    private const int DefaultFrequency = 44100;
+    [SerializeField]
+    private int recordingDuration = 10;
+    [SerializeField]
+    private int defaultFrequency = 44100;
     [SerializeField] 
     private bool enableDebug = false;
 
@@ -22,11 +27,9 @@ public class TBRecorder : MonoBehaviour
         {
             Debug.Log(Microphone.devices[i]);
         }
-        int frequency;
-        int maxFrequency;
-        Microphone.GetDeviceCaps(null,out frequency, out maxFrequency);
-        frequency = maxFrequency < DefaultFrequency ? maxFrequency : DefaultFrequency;
-        currentAudioSource.clip = Microphone.Start(null, true, RecordingDuration, frequency);
+        Microphone.GetDeviceCaps(null,out var frequency, out var maxFrequency);
+        frequency = maxFrequency < defaultFrequency ? maxFrequency : defaultFrequency;
+        currentAudioSource.clip = Microphone.Start(null, true, recordingDuration, frequency);
         currentAudioSource.Play();
     }
 
@@ -42,6 +45,20 @@ public class TBRecorder : MonoBehaviour
         Debug.Log("Start Playing");
         currentAudioSource.Play();
     }
+
+    public void SaveFile(string filename)
+    {
+        string filePath = Path.Combine(Application.persistentDataPath, $"{filename}.wav");
+        Debug.Log($"Saving file to: {filePath}");
+        try
+        {
+            SavWav.Save(filePath, currentAudioSource.clip);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Fail to save file. {exception}");
+        }
+    }
     
     void OnGUI()   
     {
@@ -51,6 +68,7 @@ public class TBRecorder : MonoBehaviour
             if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 25, 200, 50), "Stop and Play!"))
             {
                 StopRecording();
+                SaveFile("testFile");
                 StartPlaying();
             }
             GUI.Label(new Rect(Screen.width / 2 - 100, Screen.height / 2 + 25, 200, 50), "Recording in progress...");
