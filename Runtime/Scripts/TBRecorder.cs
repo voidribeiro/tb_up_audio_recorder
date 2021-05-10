@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class TBRecorder : MonoBehaviour
 {
@@ -43,6 +45,45 @@ public class TBRecorder : MonoBehaviour
         currentAudioSource.Play();
     }
 
+    public void LoadFile(bool play = true)
+    {
+        LoadFile(recorderConfig.filename, play);
+    }
+
+    public void LoadFile(string filename, bool play = true)
+    {
+        string filePath = Path.Combine(Application.persistentDataPath, $"{filename}.wav");
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"Fail to find file in path {filePath}");
+            return;
+        }
+        StartCoroutine(loadAudio($"file://{filePath}", play));
+    }
+    
+    IEnumerator loadAudio(string path, bool play)
+    {
+        using (UnityWebRequest loadFileRequest = UnityWebRequestMultimedia.GetAudioClip(path,AudioType.WAV))
+        {
+            yield return loadFileRequest.SendWebRequest();                
+            if (loadFileRequest.result == UnityWebRequest.Result.Success){
+                currentAudioSource.clip = DownloadHandlerAudioClip.GetContent(loadFileRequest);
+                if (play)
+                {
+                    StartPlaying();
+                }
+                yield break;
+                
+            }
+            Debug.Log($"Fail to load audio file. {loadFileRequest.error}");
+        }        
+    }
+
+    public void SaveFile()
+    {
+        SaveFile(recorderConfig.filename);
+    }
+
     public void SaveFile(string filename)
     {
         string filePath = Path.Combine(Application.persistentDataPath, $"{filename}.wav");
@@ -60,6 +101,11 @@ public class TBRecorder : MonoBehaviour
     void OnGUI()   
     {
         if(!enableDebug) return;
+        if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 4 - 25, 200, 50), "Play"))
+        {
+            LoadFile();
+        }
+        
         if (Microphone.IsRecording(null))
         {
             if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 25, 200, 50), "Stop and Play!"))
