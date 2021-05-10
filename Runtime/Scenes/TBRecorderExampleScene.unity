@@ -238,8 +238,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentAudioSource: {fileID: 1533259036}
-  recordingDuration: 10
-  defaultFrequency: 44100
+  recorderConfig: {fileID: 11400000, guid: c3be2f6505e355747b7c7509de091aa5, type: 2}
   enableDebug: 1
 --- !u!82 &1533259036
 AudioSource:
@@ -252,7 +251,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0

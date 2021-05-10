@@ -1,16 +1,13 @@
 ﻿using System;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
 
 public class TBRecorder : MonoBehaviour
 {
     [SerializeField]
     private AudioSource currentAudioSource;
-    [SerializeField]
-    private int recordingDuration = 10;
-    [SerializeField]
-    private int defaultFrequency = 44100;
+    [SerializeField] 
+    private TBRecorderConfig recorderConfig;
     [SerializeField] 
     private bool enableDebug = false;
 
@@ -28,8 +25,8 @@ public class TBRecorder : MonoBehaviour
             Debug.Log(Microphone.devices[i]);
         }
         Microphone.GetDeviceCaps(null,out var frequency, out var maxFrequency);
-        frequency = maxFrequency < defaultFrequency ? maxFrequency : defaultFrequency;
-        currentAudioSource.clip = Microphone.Start(null, true, recordingDuration, frequency);
+        frequency = maxFrequency < recorderConfig.defaultFrequency ? maxFrequency : recorderConfig.defaultFrequency;
+        currentAudioSource.clip = Microphone.Start(null, true, recorderConfig.recordingDuration, frequency);
         currentAudioSource.Play();
     }
 
@@ -68,7 +65,7 @@ public class TBRecorder : MonoBehaviour
             if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 25, 200, 50), "Stop and Play!"))
             {
                 StopRecording();
-                SaveFile("testFile");
+                SaveFile(recorderConfig.filename);
                 StartPlaying();
             }
             GUI.Label(new Rect(Screen.width / 2 - 100, Screen.height / 2 + 25, 200, 50), "Recording in progress...");
