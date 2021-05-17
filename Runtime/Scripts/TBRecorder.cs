@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public class TBRecorder : MonoBehaviour
@@ -12,6 +13,10 @@ public class TBRecorder : MonoBehaviour
     private TBRecorderConfig recorderConfig;
     [SerializeField] 
     private bool enableDebug = false;
+
+    public UnityEvent OnFinishPlaying;
+    private bool _isPlaying;
+    private float _startRecordingTime;
 
     public void Start()
     {
@@ -28,8 +33,9 @@ public class TBRecorder : MonoBehaviour
         }
         Microphone.GetDeviceCaps(null,out var frequency, out var maxFrequency);
         frequency = maxFrequency < recorderConfig.defaultFrequency ? maxFrequency : recorderConfig.defaultFrequency;
-        currentAudioSource.clip = Microphone.Start(null, true, recorderConfig.recordingDuration, frequency);
+        currentAudioSource.clip = Microphone.Start(null, false, recorderConfig.recordingDuration, frequency);
         currentAudioSource.Play();
+        _startRecordingTime = Time.time;
     }
 
     public void StopRecording()
@@ -37,12 +43,42 @@ public class TBRecorder : MonoBehaviour
         if(!Microphone.IsRecording(null)) return;
         Debug.Log("Stop Recording");
         Microphone.End(null);
+        float deltaTime = Time.time - _startRecordingTime;
+        
+        if (deltaTime >= recorderConfig.recordingDuration) return;
+        
+        AudioClip newClip = currentAudioSource.clip;
+        float lengthL = newClip.length;
+        float samplesL = newClip.samples;
+        float samplesPerSec = samplesL/lengthL;
+        float[] samples = new float[(int)(samplesPerSec * deltaTime)];
+        newClip.GetData(samples,0);
+            
+        currentAudioSource.clip = AudioClip.Create("RecordedSound",(int)(deltaTime*samplesPerSec),1,recorderConfig.defaultFrequency,false,false);
+        currentAudioSource.clip.SetData(samples,0);
     }
 
     public void StartPlaying()
     {
         Debug.Log("Start Playing");
+        Invoke("OnEndPlaying", currentAudioSource.clip.length);
         currentAudioSource.Play();
+        _isPlaying = true;
+    }
+
+    public void StopPlaying()
+    {
+        if(!_isPlaying) return;
+        Debug.Log("Stop Playing");
+        currentAudioSource.Stop();
+        OnEndPlaying();
+    }
+
+    public void OnEndPlaying()
+    {
+        if(!_isPlaying) return;
+        _isPlaying = false;
+        OnFinishPlaying?.Invoke();
     }
 
     public void LoadFile(bool play = true)
@@ -104,6 +140,7 @@ public class TBRecorder : MonoBehaviour
         if (GUI.Button(new Rect(Screen.width / 2 - 100, Screen.height / 4 - 25, 200, 50), "Play"))
         {
             LoadFile();
+            OnFinishPlaying.AddListener(DebugFinishPlaying);
         }
         
         if (Microphone.IsRecording(null))
@@ -122,5 +159,10 @@ public class TBRecorder : MonoBehaviour
         {
             StartRecording();
         }
-    }  
+    }
+
+    private void DebugFinishPlaying()
+    {
+        Debug.Log("Debug Finish Playing");
+    }
 }

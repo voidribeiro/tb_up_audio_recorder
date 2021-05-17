@@ -1,7 +1,7 @@
 {
   "name": "br.com.twinbolts.audiorecorder",
   "displayName": "TB Audio Recorder",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "unity": "2020.3",
   "description": "This package contains tools to help recording audio in Unity",
   "keywords": [
