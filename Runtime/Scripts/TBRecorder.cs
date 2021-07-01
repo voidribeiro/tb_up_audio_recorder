@@ -32,7 +32,7 @@ public class TBRecorder : MonoBehaviour
             Debug.Log(Microphone.devices[i]);
         }
         Microphone.GetDeviceCaps(null,out var frequency, out var maxFrequency);
-        frequency = maxFrequency < recorderConfig.defaultFrequency ? maxFrequency : recorderConfig.defaultFrequency;
+        frequency = recorderConfig.defaultFrequency;
         currentAudioSource.clip = Microphone.Start(null, false, recorderConfig.recordingDuration, frequency);
         currentAudioSource.Play();
         _startRecordingTime = Time.time;
