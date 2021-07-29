@@ -15,8 +15,8 @@ public class TBRecorder : MonoBehaviour
     private bool enableDebug = false;
 
     public UnityEvent OnFinishPlaying;
-    private bool _isPlaying;
     private float _startRecordingTime;
+    private Coroutine _checkPlaying;
 
     public void Start()
     {
@@ -33,6 +33,7 @@ public class TBRecorder : MonoBehaviour
         }
         Microphone.GetDeviceCaps(null,out var frequency, out var maxFrequency);
         frequency = recorderConfig.defaultFrequency;
+        currentAudioSource.mute = true;
         currentAudioSource.clip = Microphone.Start(null, false, recorderConfig.recordingDuration, frequency);
         currentAudioSource.Play();
         _startRecordingTime = Time.time;
@@ -60,24 +61,39 @@ public class TBRecorder : MonoBehaviour
 
     public void StartPlaying()
     {
+        if(_checkPlaying != null) return;        
         Debug.Log("Start Playing");
-        Invoke("OnEndPlaying", currentAudioSource.clip.length);
+        currentAudioSource.mute = false;
+        currentAudioSource.loop = false;
         currentAudioSource.Play();
-        _isPlaying = true;
+        _checkPlaying = StartCoroutine(nameof(CheckPlaying));
+    }
+
+    private IEnumerator CheckPlaying()
+    {
+        while (!currentAudioSource.isPlaying)
+        {
+            yield return null;
+        }
+        yield return new WaitForSeconds(currentAudioSource.clip.length);
+        StopPlaying();
     }
 
     public void StopPlaying()
     {
-        if(!_isPlaying) return;
+        if(!currentAudioSource.isPlaying) return;
         Debug.Log("Stop Playing");
         currentAudioSource.Stop();
+        if (_checkPlaying != null)
+        {
+            StopCoroutine(_checkPlaying);
+            _checkPlaying = null;
+        }
         OnEndPlaying();
     }
 
     public void OnEndPlaying()
     {
-        if(!_isPlaying) return;
-        _isPlaying = false;
         OnFinishPlaying?.Invoke();
     }
 
